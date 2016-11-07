@@ -23,6 +23,7 @@ from Queue import Empty as QueueEmpty   # Queue here refers to the module, not a
 from mbed_host_tests.host_tests_logger import HtrunLogger
 from conn_primitive_serial import SerialConnectorPrimitive
 from conn_primitive_remote import RemoteConnectorPrimitive
+from conn_primitive_pyocd import PyocdConnectorPrimitive
 
 
 class KiViBufferWalker():
@@ -117,6 +118,23 @@ def conn_primitive_factory(conn_resource, config, event_queue, logger):
             config=config)
         return connector
 
+    elif conn_resource == 'pyocd':
+        # Get extra configuration related to serial port
+        target_id = config.get('target_id')
+        baudrate = config.get('baudrate')
+        #serial_pooling = int(config.get('serial_pooling', 60))
+
+        #logger.prn_inf("notify event queue about extra %d sec timeout for serial port pooling" % serial_pooling)
+        #event_queue.put(('__timeout', serial_pooling, time()))
+
+        logger.prn_inf("initializing serial port listener... ")
+        connector = PyocdConnectorPrimitive(
+            'POCD',
+            target_id,
+            baudrate,
+            config=config)
+        return connector
+
     else:
         logger.pn_err("unknown connection resource!")
         raise NotImplementedError("ConnectorPrimitive factory: unknown connection resource '%s'!"% conn_resource)
@@ -135,7 +153,7 @@ def conn_process(event_queue, dut_event_queue, config):
     # Configuration of conn_opriocess behaviour
     sync_behavior = int(config.get('sync_behavior', 1))
     sync_timeout = config.get('sync_timeout', 1.0)
-    conn_resource = config.get('conn_resource', 'serial')
+    conn_resource = 'pyocd'#config.get('conn_resource', 'pyocd')
 
     # Create connector instance with proper configuration
     connector = conn_primitive_factory(conn_resource, config, event_queue, logger)
