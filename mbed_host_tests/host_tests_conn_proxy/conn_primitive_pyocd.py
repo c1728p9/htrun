@@ -18,8 +18,6 @@ limitations under the License.
 
 
 from time import sleep
-from mbed_host_tests import host_tests_plugins
-from mbed_host_tests.host_tests_plugins.host_test_plugins import HostTestPluginBase
 from conn_primitive import ConnectorPrimitive
 from dap_serial import DapSerial
 
@@ -32,23 +30,10 @@ class PyocdConnectorPrimitive(ConnectorPrimitive):
         self.timeout = 0.01  # 10 milli sec
         self.config = config
         self.target_id = self.config.get('target_id', None)
-        self.serial_pooling = config.get('serial_pooling', 60)
         self.forced_reset_timeout = config.get('forced_reset_timeout', 1)
 
         # Values used to call serial port listener...
-        self.logger.prn_inf("serial(port=%s, baudrate=%d, timeout=%s)"% (self.port, self.baudrate, self.timeout))
-
-        # Check if serial port for given target_id changed
-        # If it does we will use new port to open connections and make sure reset plugin
-        # later can reuse opened already serial port
-        #
-        # Note: This listener opens serial port and keeps connection so reset plugin uses
-        # serial port object not serial port name!
-        _, serial_port = HostTestPluginBase().check_serial_port_ready(self.port, target_id=self.target_id, timeout=self.serial_pooling)
-        if serial_port != self.port:
-            # Serial port changed for given targetID
-            self.logger.prn_inf("serial port changed from '%s to '%s')"% (self.port, serial_port))
-            self.port = serial_port
+        self.logger.prn_inf("serial(id=%s, baudrate=%d, timeout=%s)" % (self.target_id, self.baudrate, self.timeout))
 
         try:
             # TIMEOUT: While creating Serial object timeout is delibrately passed as 0. Because blocking in Serial.read
@@ -57,7 +42,7 @@ class PyocdConnectorPrimitive(ConnectorPrimitive):
             self.serial = DapSerial(self.target_id, baudrate=self.baudrate, timeout=0)
         except Exception as e:
             self.serial = None
-            self.LAST_ERROR = "connection lost, serial.Serial(%s, %d, %d): %s"% (self.port,
+            self.LAST_ERROR = "connection lost, serial.Serial(%s, %d, %d): %s" % (self.target_id,
                 self.baudrate,
                 self.timeout,
                 str(e))
@@ -71,7 +56,7 @@ class PyocdConnectorPrimitive(ConnectorPrimitive):
         if not reset_type:
             reset_type = 'default'
 
-        self.logger.prn_inf("reset device using '%s' plugin..."% reset_type)
+        self.logger.prn_inf("reset device using pyocd_serial plugin")
         self.serial.send_break(delay)
         result = True
 
@@ -102,7 +87,7 @@ class PyocdConnectorPrimitive(ConnectorPrimitive):
                     self.logger.prn_txd(payload)
         except Exception as e:
             self.serial = None
-            self.LAST_ERROR = "connection lost, serial.write(%d bytes): %s"% (len(payload), str(e))
+            self.LAST_ERROR = "connection lost, serial.write(%d bytes): %s" % (len(payload), str(e))
             self.logger.prn_err(str(e))
         return payload
 

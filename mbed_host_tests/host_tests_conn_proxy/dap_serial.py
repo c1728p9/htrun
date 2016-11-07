@@ -19,7 +19,11 @@ class DapSerial(object):
         self._id = board_id
         self._dap = DAPAccess.get_device(self._id)
         self._dap.open()
+        self._is_open = True
         self.baudrate = baudrate
+
+    def __nonzero__(self):
+        return self._is_open
 
     def write(self, data):
         start = time.time()
@@ -76,7 +80,10 @@ class DapSerial(object):
         self._dap.vendor(self.COMMAND_RESET, [0])
 
     def close(self):
-        self._dap.close()
+        assert self._is_open
+        if self._is_open:
+            self._dap.close()
+        self._is_open = False
 
     def _update_config(self):
         self._config = [
