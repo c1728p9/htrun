@@ -39,7 +39,7 @@ class PyocdConnectorPrimitive(ConnectorPrimitive):
             # TIMEOUT: While creating Serial object timeout is delibrately passed as 0. Because blocking in Serial.read
             # impacts thread and mutliprocess functioning in Python. Hence, instead in self.read() s delay (sleep()) is
             # inserted to let serial buffer collect data and avoid spinning on non blocking read().
-            self.serial = DapSerial(self.target_id, baudrate=self.baudrate, timeout=0)
+            self.serial = DapSerial(self.target_id, baudrate=self.baudrate, timeout=self.timeout)
         except Exception as e:
             self.serial = None
             self.LAST_ERROR = "connection lost, serial.Serial(%s, %d, %d): %s" % (self.target_id,
@@ -65,9 +65,6 @@ class PyocdConnectorPrimitive(ConnectorPrimitive):
 
     def read(self, count):
         """! Read data from serial port RX buffer """
-        # TIMEOUT: Since read is called in a loop, wait for self.timeout period before calling serial.read(). See
-        # comment on serial.Serial() call above about timeout.
-        sleep(self.timeout)
         c = str()
         try:
             if self.serial:
