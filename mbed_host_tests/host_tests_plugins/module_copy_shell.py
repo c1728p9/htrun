@@ -90,21 +90,24 @@ class HostTestPluginCopyMethod_Shell(HostTestPluginBase):
                 if result:
                     checked_path = destination_path
                     dismounted = False
-                    for i in range(120):
+                    # Wait for ~30 seconds
+                    for i in range(3000):
                         if os.path.exists(checked_path):
-                            if dismounted:
-                                complete = True
-                                self.print_plugin_info("Disk dismounted correctly")
-                                break
+                            sleep(0.01)
                         else:
-                            if not dismounted:
-                                dismounted = True
-                                checked_path = destination_disk
-
-                        sleep(0.01)
+                            dismounted = True
+                            break
                     
-                    if not complete:
+                    
+                    if not dismounted:
                         self.print_plugin_error("Error: Disk failed to dismount")
+                    else:
+                        self.print_plugin_error("Disk dismounted, waiting for remount...")
+                        # Wait for mount point to be ready
+                        # if mount point changed according to target_id use new mount point
+                        # available in result (_, destination_disk) of check_mount_point_ready
+                        mount_res, destination_disk = self.check_mount_point_ready(destination_disk, target_id=target_id, timeout=pooling_timeout)  # Blocking
+                        complete = mount_res
         return result and complete
 
 

@@ -154,7 +154,9 @@ class HostTestPluginBase:
         result = False
         # Check if mount point we've promoted to be valid one (by optional target_id check above)
         # Let's wait for 30 * loop_delay + init_delay max
-        if not access(destination_disk, F_OK):
+        if access(destination_disk, F_OK):
+            result = True
+        else:
             self.print_plugin_info("Waiting for mount point '%s' to be ready..."% destination_disk, NL=False)
             sleep(init_delay)
             for i in range(30):
