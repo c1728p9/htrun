@@ -148,6 +148,7 @@ class DefaultTestSelector(DefaultTestSelectorBase):
             config = {
                 "digest" : "serial",
                 "port" : self.mbed.port,
+                "disk" : self.mbed.disk,
                 "baudrate" : self.mbed.serial_baud,
                 "program_cycle_s" : self.options.program_cycle_s,
                 "reset_type" : self.options.forced_reset_type,

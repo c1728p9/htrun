@@ -22,6 +22,7 @@ from serial import Serial, SerialException
 from mbed_host_tests import host_tests_plugins
 from mbed_host_tests.host_tests_plugins.host_test_plugins import HostTestPluginBase
 from conn_primitive import ConnectorPrimitive
+from os.path import exists
 
 
 class SerialConnectorPrimitive(ConnectorPrimitive):
@@ -50,6 +51,10 @@ class SerialConnectorPrimitive(ConnectorPrimitive):
             self.logger.prn_inf("serial port changed from '%s to '%s')"% (self.port, serial_port))
             self.port = serial_port
 
+        disk = self.config.get('disk', None)
+        if not exists(disk):
+            raise SerialException('Disk "%s" did not exist at time of open!' % disk)
+
         try:
             # TIMEOUT: While creating Serial object timeout is delibrately passed as 0. Because blocking in Serial.read
             # impacts thread and mutliprocess functioning in Python. Hence, instead in self.read() s delay (sleep()) is
@@ -73,6 +78,9 @@ class SerialConnectorPrimitive(ConnectorPrimitive):
         disk = self.config.get('disk', None)
 
         self.logger.prn_inf("reset device using '%s' plugin..."% reset_type)
+        disk = self.config.get('disk', None)
+        if not exists(disk):
+            raise SerialException('Disk "%s" did not exist at time of reset!' % disk)
         result = host_tests_plugins.call_plugin('ResetMethod',
             reset_type,
             serial=self.serial,
@@ -93,6 +101,9 @@ class SerialConnectorPrimitive(ConnectorPrimitive):
         c = str()
         try:
             if self.serial:
+                disk = self.config.get('disk', None)
+                if not exists(disk):
+                    raise SerialException('Disk "%s" did not exist at time of read!' % disk)
                 c = self.serial.read(count)
         except SerialException as e:
             self.serial = None
@@ -104,6 +115,9 @@ class SerialConnectorPrimitive(ConnectorPrimitive):
         """! Write data to serial port TX buffer """
         try:
             if self.serial:
+                disk = self.config.get('disk', None)
+                if not exists(disk):
+                    raise SerialException('Disk "%s" did not exist at time of write!' % disk)
                 self.serial.write(payload)
                 if log:
                     self.logger.prn_txd(payload)
@@ -115,6 +129,9 @@ class SerialConnectorPrimitive(ConnectorPrimitive):
 
     def flush(self):
         if self.serial:
+            disk = self.config.get('disk', None)
+            if not exists(disk):
+                raise SerialException('Disk "%s" did not exist at time of flush!' % disk)
             self.serial.flush()
 
     def connected(self):
@@ -122,6 +139,9 @@ class SerialConnectorPrimitive(ConnectorPrimitive):
 
     def finish(self):
         if self.serial:
+            disk = self.config.get('disk', None)
+            if not exists(disk):
+                raise SerialException('Disk "%s" did not exist at time of finish!' % disk)
             self.serial.close()
 
     def __del__(self):
