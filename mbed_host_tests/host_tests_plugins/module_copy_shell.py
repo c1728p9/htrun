@@ -18,8 +18,9 @@ Author: Przemyslaw Wirkus <Przemyslaw.Wirkus@arm.com>
 """
 
 import os
-from os.path import join, basename
+from os.path import join, basename, exists
 from host_test_plugins import HostTestPluginBase
+from time import sleep
 
 
 class HostTestPluginCopyMethod_Shell(HostTestPluginBase):
@@ -62,6 +63,7 @@ class HostTestPluginCopyMethod_Shell(HostTestPluginBase):
         pooling_timeout = kwargs.get('pooling_timeout', 60)
 
         result = False
+        complete = False
         if self.check_parameters(capability, *args, **kwargs):
             if kwargs['image_path'] and kwargs['destination_disk']:
                 image_path = os.path.normpath(kwargs['image_path'])
@@ -84,7 +86,26 @@ class HostTestPluginCopyMethod_Shell(HostTestPluginBase):
                         result = self.run_command(["sync"])
                     else:
                         result = self.run_command(cmd)
-        return result
+
+                if result:
+                    checked_path = destination_path
+                    dismounted = False
+                    for i in range(120):
+                        if os.path.exists(checked_path):
+                            if dismounted:
+                                complete = True
+                                self.print_plugin_info("Disk dismounted correctly")
+                                break
+                        else:
+                            if not dismounted:
+                                dismounted = True
+                                checked_path = destination_disk
+
+                        sleep(0.01)
+                    
+                    if not complete:
+                        self.print_plugin_error("Error: Disk failed to dismount")
+        return result and complete
 
 
 def load_plugin():
