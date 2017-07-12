@@ -23,6 +23,7 @@ from Queue import Empty as QueueEmpty   # Queue here refers to the module, not a
 from mbed_host_tests.host_tests_logger import HtrunLogger
 from conn_primitive_serial import SerialConnectorPrimitive
 from conn_primitive_remote import RemoteConnectorPrimitive
+from conn_primitive_host import HostConnectorPrimitive
 
 
 class KiViBufferWalker():
@@ -105,6 +106,8 @@ def conn_primitive_factory(conn_resource, config, event_queue, logger):
         connector = RemoteConnectorPrimitive(
             'GLRM',
             config=config)
+    elif conn_resource == 'host':
+        connector = HostConnectorPrimitive('HOST', config=config)
     else:
         logger.pn_err("unknown connection resource!")
         raise NotImplementedError("ConnectorPrimitive factory: unknown connection resource '%s'!"% conn_resource)

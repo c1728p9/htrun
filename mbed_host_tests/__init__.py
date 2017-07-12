@@ -267,6 +267,11 @@ def init_host_test_cli_params():
                       dest='global_resource_mgr',
                       help='[Experimental] Global resource manager service module name, IP and port, example remote_client:10.2.123.43:3334')
 
+    parser.add_option('-n', '--native',
+                      dest='native_mode',
+                      action="store_true",
+                      help='[Experimental] This test runs natively')
+
     parser.add_option('', '--run',
                       dest='run_binary',
                       default=False,
